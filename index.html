@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoSQL-Eval Leaderboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a4d2e 0%, #2d5f3f 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(26, 77, 46, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        .title-section {
+            flex: 1;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 100px);
+        }
+
+        .left-panel {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .right-panel {
+            width: 380px;
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .paper-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .paper-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .paper-card:hover {
+            background: #f0f0f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .paper-title {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
+            color: #1a4d2e;
+        }
+
+        .paper-abstract {
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .paper-link {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+        }
+
+        .submit-section {
+            margin-top: 2rem;
+        }
+
+        .submit-btn {
+            background: #1a4d2e;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: block;
+            text-align: center;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #2d5f3f;
+            box-shadow: 0 4px 12px rgba(26, 77, 46, 0.3);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: #1a4d2e;
+        }
+
+        .tab.active {
+            color: #1a4d2e;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #1a4d2e;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metrics-info {
+            background: white;
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e0e0;
+        }
+
+        .metrics-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a4d2e;
+            margin-bottom: 0.8rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .metric-item {
+            padding: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        .metric-abbr {
+            font-weight: 600;
+            color: #1a4d2e;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 8px;
+            overflow: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            max-height: calc(100vh - 350px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        thead {
+            background: #1a4d2e;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 0.8rem 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.85rem;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank-cell {
+            font-weight: 600;
+            color: #1a4d2e;
+        }
+
+        .model-name {
+            font-weight: 500;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .cat-1 { background: #e3f2fd; color: #1565c0; }
+        .cat-2 { background: #f3e5f5; color: #7b1fa2; }
+        .cat-3 { background: #e8f5e9; color: #2e7d32; }
+        .cat-4 { background: #fff3e0; color: #ef6c00; }
+        .cat-5 { background: #fce4ec; color: #c2185b; }
+        .cat-6 { background: #e0f2f1; color: #00695c; }
+
+        .value-high {
+            font-weight: 600;
+            color: #1a4d2e;
+        }
+
+        @media (max-width: 1200px) {
+            .right-panel {
+                width: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="title-section">
+                <h1>GeoSQL-Eval Leaderboard</h1>
+                <p class="subtitle">Comprehensive Evaluation Framework for LLMs in PostGIS Query Generation</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="tabs">
+                <button class="tab active" onclick="window.switchTab('conceptual')">Conceptual Understanding</button>
+                <button class="tab" onclick="window.switchTab('syntax')">Syntax-Level Generation</button>
+                <button class="tab" onclick="window.switchTab('table')">Table-Level Retrieval</button>
+            </div>
+
+            <div id="conceptual" class="tab-content active">
+                <div class="metrics-info">
+                    <div class="metrics-title">Metric Definitions</div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <span class="metric-abbr">FUNCTION_PURPOSE</span>: Function Purpose Identification
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">PARAMETER_CHECK</span>: Parameter Order and Type Verification
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">RETURN_TYPE</span>: Return Type Recognition
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">GENERAL_KNOWLEDGE</span>: General Spatial Knowledge
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="conceptual-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Model</th>
+                                <th>Category</th>
+                                <th>FUNCTION_PURPOSE</th>
+                                <th>PARAMETER_CHECK</th>
+                                <th>RETURN_TYPE</th>
+                                <th>GENERAL_KNOWLEDGE</th>
+                                <th>Average</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="syntax" class="tab-content">
+                <div class="metrics-info">
+                    <div class="metrics-title">Metric Definitions</div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <span class="metric-abbr">Execution Pass Rate</span>: Query execution success rate (Level 2)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">Syntactic Validity</span>: SQL syntax correctness (Level 2)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">FNR</span>: Function Name Hit Rate (Level 3)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">AMA</span>: Argument Match Accuracy (Level 3)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">ACC_ALL</span>: Overall Accuracy (Level 4)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">ACC_Geo</span>: Geometry Query Accuracy (Level 4)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">ACC_Other</span>: Non-Geometry Query Accuracy (Level 4)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">pass@k</span>: Success rate at k attempts (Level 5)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">CV</span>: Coefficient of Variation (Level 5)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">SA</span>: Semantic Alignment Score (Level 5)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="syntax-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Model</th>
+                                <th>Category</th>
+                                <th>Exec Rate</th>
+                                <th>Syntax Valid</th>
+                                <th>FNR</th>
+                                <th>AMA</th>
+                                <th>ACC_ALL</th>
+                                <th>ACC_Geo</th>
+                                <th>ACC_Other</th>
+                                <th>pass@1</th>
+                                <th>pass@3</th>
+                                <th>pass@5</th>
+                                <th>CV</th>
+                                <th>SA</th>
+                                <th>ACC_EXPL</th>
+                                <th>ACC_UNDER</th>
+                                <th>Time</th>
+                                <th>Tokens</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="table" class="tab-content">
+                <div class="metrics-info">
+                    <div class="metrics-title">Metric Definitions</div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <span class="metric-abbr">THR</span>: Table Hit Rate (Level 3)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">FHR</span>: Field Hit Rate (Level 3)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">FNR</span>: Function Name Hit Rate (Level 3)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">ACC_ALL</span>: Overall Accuracy (Level 4)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">ACC_Geo</span>: Geometry Query Accuracy (Level 4)
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-abbr">Resource Consumption</span>: Time (s) and Tokens
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="table-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Model</th>
+                                <th>Category</th>
+                                <th>Exec Rate</th>
+                                <th>Syntax Valid</th>
+                                <th>THR</th>
+                                <th>FHR</th>
+                                <th>FNR</th>
+                                <th>ACC_ALL</th>
+                                <th>ACC_Geo</th>
+                                <th>pass@1</th>
+                                <th>pass@3</th>
+                                <th>pass@5</th>
+                                <th>CV</th>
+                                <th>SA</th>
+                                <th>ACC_EXPL</th>
+                                <th>ACC_UNDER</th>
+                                <th>Time</th>
+                                <th>Tokens</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="paper-section">
+                <div class="section-label">Research Paper</div>
+                <div class="paper-card">
+                    <a href="#" class="paper-link">
+                        <div class="paper-title">From NL2SQL to NL2GeoSQL: GeoSQL-Eval for automated evaluation of LLMs on PostGIS queries</div>
+                        <div class="paper-abstract">
+                            In recent years, large language models (LLMs) have achieved remarkable progress in natural language understanding and structured query generation (NL2SQL). However, extending these advances to GeoSQL tasks in the PostGIS environment remains challenging due to the complexity of spatial functions, geometric data types, and execution semantics. Existing evaluations primarily focus on general relational databases or Google Earth Engine code generation, leaving a lack of systematic benchmarks tailored to spatial databases. To address this gap, this study introduces GeoSQL-Eval, the first end-to-end automated evaluation framework for PostGIS query generation. Built upon Webb’s Depth of Knowledge (DOK) model, the framework encompasses four cognitive dimensions, five proficiency levels, and twenty task categories,......
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <div class="section-label">Submit Your Model</div>
+                <a href="mailto:haoyuejiao@whu.edu.cn?subject=GeoSQL-Eval Model Submission" class="submit-btn">
+                    Submit Model for Evaluation
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categoryMapping = {
+            1: "General Non-Reasoning",
+            2: "General Reasoning-Enhanced",
+            3: "General Code Generation",
+            4: "Geospatial Code Generation",
+            5: "General SQL Generation",
+            6: "GeoSQL Generation Strategies"
+        };
+
+        const conceptualData = [
+            {cat: 2, name: "DeepSeek-R1-0528", func: 0.947, param: 0.901, ret: 0.994, gen: 0.809, avg: 0.913},
+            {cat: 1, name: "Claude3.7-Sonnet", func: 0.959, param: 0.879, ret: 0.974, gen: 0.782, avg: 0.899},
+            {cat: 2, name: "GPT-5", func: 0.969, param: 0.882, ret: 0.950, gen: 0.774, avg: 0.894},
+            {cat: 1, name: "GPT-4.1", func: 0.938, param: 0.894, ret: 0.953, gen: 0.759, avg: 0.886},
+            {cat: 1, name: "Qwen3-32B", func: 0.931, param: 0.878, ret: 0.950, gen: 0.757, avg: 0.879},
+            {cat: 2, name: "Gemini2.5-Flash-0520", func: 0.921, param: 0.828, ret: 0.973, gen: 0.770, avg: 0.873},
+            {cat: 1, name: "DeepSeek-V3-0324", func: 0.957, param: 0.832, ret: 0.974, gen: 0.715, avg: 0.869},
+            {cat: 2, name: "Qwen3-32B-Thinking", func: 0.916, param: 0.836, ret: 0.973, gen: 0.745, avg: 0.867},
+            {cat: 2, name: "o4-mini", func: 0.896, param: 0.824, ret: 0.952, gen: 0.776, avg: 0.862},
+            {cat: 1, name: "GPT-4.1-mini", func: 0.924, param: 0.818, ret: 0.944, gen: 0.746, avg: 0.858},
+            {cat: 5, name: "XiYan-SQL-32B", func: 0.907, param: 0.834, ret: 0.953, gen: 0.726, avg: 0.855},
+            {cat: 6, name: "SpatialSQL", func: 0.909, param: 0.821, ret: 0.950, gen: 0.725, avg: 0.851},
+            {cat: 3, name: "Qwen2.5-Coder-32B", func: 0.900, param: 0.821, ret: 0.953, gen: 0.712, avg: 0.846},
+            {cat: 2, name: "QwQ-32B", func: 0.922, param: 0.772, ret: 0.950, gen: 0.735, avg: 0.845},
+            {cat: 2, name: "GPT-OSS-20B", func: 0.901, param: 0.810, ret: 0.964, gen: 0.693, avg: 0.842},
+            {cat: 5, name: "XiYan-SQL-14B", func: 0.896, param: 0.788, ret: 0.932, gen: 0.713, avg: 0.832},
+            {cat: 6, name: "Monkuu", func: 0.890, param: 0.722, ret: 0.906, gen: 0.690, avg: 0.802},
+            {cat: 5, name: "XiYan-SQL-7B", func: 0.876, param: 0.751, ret: 0.903, gen: 0.657, avg: 0.797},
+            {cat: 4, name: "GeoCode-GPT-7B", func: 0.797, param: 0.651, ret: 0.726, gen: 0.599, avg: 0.693},
+            {cat: 3, name: "DeepSeek-Coder-V2-16B", func: 0.615, param: 0.611, ret: 0.822, gen: 0.679, avg: 0.682},
+            {cat: 3, name: "Code-Llama-13B", func: 0.778, param: 0.487, ret: 0.771, gen: 0.522, avg: 0.639},
+            {cat: 5, name: "CodeS-15B", func: 0.626, param: 0.278, ret: 0.159, gen: 0.286, avg: 0.337},
+            {cat: 5, name: "CodeS-3B", func: 0.046, param: 0.532, ret: 0.204, gen: 0.510, avg: 0.323},
+            {cat: 5, name: "CodeS-7B", func: 0.474, param: 0.103, ret: 0.135, gen: 0.000, avg: 0.178}
+        ];
+
+        const syntaxData = [
+            {cat: 1, name: "Claude3.7-Sonnet", exec: 0.8774, syntax: 0.9896, fnr: 0.6804, ama: 0.3413, all: 0.6725, geo: 0.7856, other: 0.6851, p1: 0.6703, p3: 0.7083, p5: 0.7198, cv: 0.0302, sa: 69.87, expl: 0.6725, under: 0.2989, time: 1.995, tokens: 254.879},
+            {cat: 1, name: "DeepSeek-V3-0324", exec: 0.8725, syntax: 0.9942, fnr: 0.6656, ama: 0.3514, all: 0.6587, geo: 0.7694, other: 0.7032, p1: 0.6615, p3: 0.7083, p5: 0.7236, cv: 0.0379, sa: 69.72, expl: 0.6587, under: 0.2871, time: 7.075, tokens: 219.425},
+            {cat: 2, name: "Gemini2.5-Flash-0520", exec: 0.8265, syntax: 0.9855, fnr: 0.633, ama: 0.3484, all: 0.6498, geo: 0.781, other: 0.7261, p1: 0.6588, p3: 0.8531, p5: 0.8986, cv: 0.1294, sa: 79.56, expl: 0.6498, under: 0.3429, time: 13.434, tokens: 1072.024},
+            {cat: 2, name: "GPT-5", exec: 0.8564, syntax: 0.9756, fnr: 0.6581, ama: 0.3485, all: 0.6464, geo: 0.7568, other: 0.714, p1: 0.6599, p3: 0.8303, p5: 0.8804, cv: 0.1194, sa: 78.65, expl: 0.6464, under: 0.3197, time: 45.547, tokens: 1787.728},
+            {cat: 2, name: "o4-mini", exec: 0.821, syntax: 0.995, fnr: 0.6347, ama: 0.3459, all: 0.6361, geo: 0.7865, other: 0.7084, p1: 0.6377, p3: 0.8459, p5: 0.898, cv: 0.1417, sa: 78.65, expl: 0.6361, under: 0.2823, time: 7.626, tokens: 611.305},
+            {cat: 1, name: "GPT-4.1", exec: 0.8458, syntax: 0.9823, fnr: 0.6378, ama: 0.3359, all: 0.6267, geo: 0.7411, other: 0.6792, p1: 0.6302, p3: 0.662, p5: 0.6722, cv: 0.0273, sa: 65.43, expl: 0.6267, under: 0.2722, time: 2.899, tokens: 231.48},
+            {cat: 6, name: "SpatialSQL", exec: 0.8471, syntax: 0.9872, fnr: 0.6397, ama: 0.268, all: 0.6197, geo: 0.7552, other: 0.6653, p1: 0.6165, p3: 0.7707, p5: 0.8215, cv: 0.1184, sa: 73.45, expl: 0.6197, under: 0.301, time: 4.834, tokens: 227.142},
+            {cat: 2, name: "DeepSeek-R1-0528", exec: 0.8122, syntax: 0.9931, fnr: 0.5831, ama: 0.3101, all: 0.6193, geo: 0.7656, other: 0.7183, p1: 0.6163, p3: 0.7008, p5: 0.7244, cv: 0.0682, sa: 67.82, expl: 0.6193, under: 0.3251, time: 5.279, tokens: 1355.197},
+            {cat: 1, name: "GPT-4.1-mini", exec: 0.7798, syntax: 0.9768, fnr: 0.6022, ama: 0.2917, all: 0.571, geo: 0.7439, other: 0.6661, p1: 0.5761, p3: 0.6152, p5: 0.6323, cv: 0.0387, sa: 60.87, expl: 0.571, under: 0.23, time: 3.715, tokens: 243.461},
+            {cat: 2, name: "Qwen3-32B-Thinking", exec: 0.7473, syntax: 0.9335, fnr: 0.582, ama: 0.321, all: 0.5661, geo: 0.7632, other: 0.7066, p1: 0.5574, p3: 0.6923, p5: 0.7303, cv: 0.1124, sa: 65.65, expl: 0.5661, under: 0.2727, time: 75.954, tokens: 2440.413},
+            {cat: 1, name: "Qwen3-32B", exec: 0.7627, syntax: 0.9817, fnr: 0.6092, ama: 0.3274, all: 0.5594, geo: 0.7573, other: 0.6485, p1: 0.5593, p3: 0.5895, p5: 0.6005, cv: 0.0299, sa: 58.31, expl: 0.5594, under: 0.2503, time: 107.481, tokens: 272.616},
+            {cat: 5, name: "XiYan-SQL-32B", exec: 0.7734, syntax: 0.9621, fnr: 0.5456, ama: 0.2793, all: 0.5377, geo: 0.726, other: 0.6245, p1: 0.5397, p3: 0.5644, p5: 0.5756, cv: 0.0268, sa: 56.06, expl: 0.5377, under: 0.2599, time: 13.865, tokens: 257.779},
+            {cat: 3, name: "Qwen2.5-Coder-32B", exec: 0.7313, syntax: 0.9251, fnr: 0.5259, ama: 0.2815, all: 0.5365, geo: 0.757, other: 0.6554, p1: 0.5363, p3: 0.5724, p5: 0.5858, cv: 0.037, sa: 56.49, expl: 0.5365, under: 0.2583, time: 9.616, tokens: 267.479},
+            {cat: 2, name: "QwQ-32B", exec: 0.7182, syntax: 0.9842, fnr: 0.5199, ama: 0.2568, all: 0.5177, geo: 0.7393, other: 0.6476, p1: 0.517, p3: 0.635, p5: 0.6693, cv: 0.1074, sa: 60.44, expl: 0.5177, under: 0.2366, time: 3.936, tokens: 1838.445},
+            {cat: 2, name: "GPT-OSS-20B", exec: 0.6887, syntax: 0.979, fnr: 0.5128, ama: 0.2468, all: 0.504, geo: 0.734, other: 0.6617, p1: 0.5004, p3: 0.5989, p5: 0.6358, cv: 0.0988, sa: 57.86, expl: 0.504, under: 0.2057, time: 166.304, tokens: 1152.962},
+            {cat: 6, name: "Monkuu", exec: 0.6516, syntax: 0.9264, fnr: 0.446, ama: 0.2279, all: 0.4044, geo: 0.6883, other: 0.527, p1: 0.4086, p3: 0.624, p5: 0.7083, cv: 0.2175, sa: 58.18, expl: 0.4044, under: 0.172, time: 4.567, tokens: 233.163},
+            {cat: 3, name: "DeepSeek-Coder-V2-16B", exec: 0.6681, syntax: 0.9332, fnr: 0.4151, ama: 0.1594, all: 0.3808, geo: 0.6003, other: 0.4842, p1: 0.3819, p3: 0.4166, p5: 0.43, cv: 0.0495, sa: 40.97, expl: 0.3808, under: 0.1434, time: 9.412, tokens: 268.932},
+            {cat: 5, name: "CodeS-15B", exec: 0.6222, syntax: 0.9664, fnr: 0.4655, ama: 0.1736, all: 0.3517, geo: 0.6135, other: 0.494, p1: 0.3487, p3: 0.4311, p5: 0.4627, cv: 0.116, sa: 41.46, expl: 0.3517, under: 0.1076, time: 55.057, tokens: 235.364},
+            {cat: 5, name: "CodeS-7B", exec: 0.5806, syntax: 0.9415, fnr: 0.4359, ama: 0.1949, all: 0.341, geo: 0.6281, other: 0.505, p1: 0.3377, p3: 0.4223, p5: 0.4496, cv: 0.1181, sa: 40.21, expl: 0.341, under: 0.1036, time: 24.808, tokens: 234.033},
+            {cat: 3, name: "Code-Llama-13B", exec: 0.4857, syntax: 0.7825, fnr: 0.3978, ama: 0.185, all: 0.3189, geo: 0.7103, other: 0.5465, p1: 0.3211, p3: 0.4536, p5: 0.514, cv: 0.1875, sa: 43.28, expl: 0.3189, under: 0.1458, time: 7.27, tokens: 413.564},
+            {cat: 5, name: "XiYan-SQL-7B", exec: 0.5201, syntax: 0.8549, fnr: 0.3604, ama: 0.1398, all: 0.3161, geo: 0.6422, other: 0.5338, p1: 0.315, p3: 0.3551, p5: 0.3757, cv: 0.0723, sa: 35.04, expl: 0.3161, under: 0.1824, time: 14.079, tokens: 274.158},
+            {cat: 5, name: "XiYan-SQL-14B", exec: 0.4609, syntax: 0.7997, fnr: 0.263, ama: 0.0936, all: 0.2476, geo: 0.6251, other: 0.2307, p1: 0.2499, p3: 0.3051, p5: 0.3275, cv: 0.1109, sa: 29.48, expl: 0.2476, under: 0.0847, time: 24.614, tokens: 295.582},
+            {cat: 4, name: "GeoCode-GPT-7B", exec: 0.3626, syntax: 0.8258, fnr: 0.2926, ama: 0.0995, all: 0.209, geo: 0.5898, other: 0.4895, p1: 0.2109, p3: 0.2663, p5: 0.2911, cv: 0.1309, sa: 25.74, expl: 0.209, under: 0.0868, time: 9.2, tokens: 234.047},
+            {cat: 5, name: "CodeS-3B", exec: 0.382, syntax: 0.8657, fnr: 0.2962, ama: 0.1064, all: 0.1884, geo: 0.5648, other: 0.3431, p1: 0.1814, p3: 0.2823, p5: 0.3267, cv: 0.2308, sa: 26.54, expl: 0.1884, under: 0.071, time: 80.187, tokens: 311.233}
+        ];
+
+        const tableData = [
+            {cat: 2, name: "o4-mini", exec: 0.8747, syntax: 0.9932, thr: 0.9938, fhr: 0.9689, fnr: 0.3271, all: 0.4612, geo: 0.9056, p1: 0.4664, p3: 0.5629, p5: 0.5991, cv: 0.1032, sa: 54.31, expl: 0.4612, under: 0.2139, time: 17.631, tokens: 2373.099},
+            {cat: 6, name: "SpatialSQL", exec: 0.8625, syntax: 0.9944, thr: 0.9713, fhr: 0.9479, fnr: 0.3049, all: 0.4504, geo: 0.9038, p1: 0.4492, p3: 0.4998, p5: 0.5169, cv: 0.0588, sa: 48.82, expl: 0.4504, under: 0.2213, time: 4.17, tokens: 1445.413},
+            {cat: 2, name: "DeepSeek-R1-0528", exec: 0.9186, syntax: 0.9771, thr: 0.9849, fhr: 0.954, fnr: 0.3347, all: 0.4474, geo: 0.8924, p1: 0.4441, p3: 0.5415, p5: 0.5731, cv: 0.1057, sa: 51.83, expl: 0.4474, under: 0.2056, time: 113.281, tokens: 3688.355},
+            {cat: 2, name: "GPT-OSS-20B", exec: 0.8136, syntax: 0.9783, thr: 0.9908, fhr: 0.9608, fnr: 0.2626, all: 0.3979, geo: 0.9039, p1: 0.4084, p3: 0.4923, p5: 0.5244, cv: 0.103, sa: 47.54, expl: 0.3979, under: 0.1916, time: 433.413, tokens: 2308.376},
+            {cat: 5, name: "XiYan-SQL-32B", exec: 0.834, syntax: 0.9857, thr: 0.9914, fhr: 0.9582, fnr: 0.2632, all: 0.3905, geo: 0.8916, p1: 0.3903, p3: 0.4116, p5: 0.4204, cv: 0.031, sa: 40.78, expl: 0.3905, under: 0.2195, time: 3.854, tokens: 1876.803},
+            {cat: 1, name: "GPT-4.1", exec: 0.7725, syntax: 0.9801, thr: 0.9932, fhr: 0.9721, fnr: 0.3033, all: 0.3816, geo: 0.906, p1: 0.3787, p3: 0.4432, p5: 0.4645, cv: 0.0851, sa: 42.81, expl: 0.3816, under: 0.2032, time: 7.771, tokens: 1469.439},
+            {cat: 2, name: "GPT-5", exec: 0.7112, syntax: 0.9882, thr: 0.9946, fhr: 0.9725, fnr: 0.3279, all: 0.3806, geo: 0.9293, p1: 0.3852, p3: 0.4357, p5: 0.4515, cv: 0.0667, sa: 42.33, expl: 0.3806, under: 0.2394, time: 7.248, tokens: 1451.228},
+            {cat: 1, name: "Qwen3-32B", exec: 0.7735, syntax: 0.9688, thr: 0.9695, fhr: 0.9317, fnr: 0.2617, all: 0.3797, geo: 0.9125, p1: 0.3842, p3: 0.4148, p5: 0.4283, cv: 0.0451, sa: 40.98, expl: 0.3797, under: 0.1647, time: 8.189, tokens: 1989.401},
+            {cat: 2, name: "Gemini2.5-Flash-0520", exec: 0.6795, syntax: 0.973, thr: 0.9497, fhr: 0.9307, fnr: 0.3236, all: 0.3716, geo: 0.9171, p1: 0.3708, p3: 0.4492, p5: 0.4794, cv: 0.1057, sa: 43.36, expl: 0.3716, under: 0.2492, time: 19.617, tokens: 2915.753},
+            {cat: 2, name: "QwQ-32B", exec: 0.7308, syntax: 0.9187, thr: 0.9797, fhr: 0.9473, fnr: 0.2445, all: 0.3577, geo: 0.9047, p1: 0.3559, p3: 0.4715, p5: 0.5114, cv: 0.1478, sa: 44.55, expl: 0.3577, under: 0.1944, time: 95.384, tokens: 3563.301},
+            {cat: 1, name: "DeepSeek-V3-0324", exec: 0.7153, syntax: 0.9879, thr: 0.9852, fhr: 0.9657, fnr: 0.3114, all: 0.3567, geo: 0.9075, p1: 0.3545, p3: 0.4046, p5: 0.4204, cv: 0.0715, sa: 39.23, expl: 0.3567, under: 0.1675, time: 5.021, tokens: 1528.709},
+            {cat: 2, name: "Qwen3-32B-Thinking", exec: 0.6491, syntax: 0.7785, thr: 0.9605, fhr: 0.9286, fnr: 0.2291, all: 0.3498, geo: 0.9197, p1: 0.3485, p3: 0.4914, p5: 0.5341, cv: 0.1733, sa: 45.52, expl: 0.3498, under: 0.2074, time: 122.394, tokens: 4593.316},
+            {cat: 1, name: "GPT-4.1-mini", exec: 0.6724, syntax: 0.9878, thr: 0.9855, fhr: 0.9623, fnr: 0.2919, all: 0.349, geo: 0.892, p1: 0.3476, p3: 0.3773, p5: 0.3879, cv: 0.046, sa: 37.08, expl: 0.349, under: 0.2097, time: 5.21, tokens: 1466.683},
+            {cat: 6, name: "Monkuu", exec: 0.7786, syntax: 0.9771, thr: 0.9917, fhr: 0.9479, fnr: 0.2097, all: 0.3435, geo: 0.8976, p1: 0.3445, p3: 0.3849, p5: 0.4239, cv: 0.0843, sa: 39.09, expl: 0.3435, under: 0.1777, time: 6.182, tokens: 1450.716},
+            {cat: 1, name: "Claude3.7-Sonnet", exec: 0.7721, syntax: 0.9871, thr: 0.9655, fhr: 0.9498, fnr: 0.3205, all: 0.3395, geo: 0.9207, p1: 0.3378, p3: 0.3606, p5: 0.3647, cv: 0.0334, sa: 35.29, expl: 0.3395, under: 0.193, time: 6.716, tokens: 1661.667},
+            {cat: 3, name: "DeepSeek-Coder-V2-16B", exec: 0.7435, syntax: 0.9862, thr: 0.9671, fhr: 0.9177, fnr: 0.1754, all: 0.2723, geo: 0.8776, p1: 0.2691, p3: 0.2984, p5: 0.3095, cv: 0.0583, sa: 29.25, expl: 0.2723, under: 0.1425, time: 31.47, tokens: 1985.512},
+            {cat: 3, name: "Qwen2.5-Coder-32B", exec: 0.5731, syntax: 0.9374, thr: 0.9788, fhr: 0.9456, fnr: 0.2186, all: 0.2653, geo: 0.8971, p1: 0.2631, p3: 0.3234, p5: 0.3578, cv: 0.1243, sa: 31.82, expl: 0.2653, under: 0.1401, time: 113.199, tokens: 1869.517},
+            {cat: 5, name: "XiYan-SQL-7B", exec: 0.62, syntax: 0.893, thr: 0.9707, fhr: 0.9175, fnr: 0.1685, all: 0.2568, geo: 0.8817, p1: 0.2589, p3: 0.2914, p5: 0.3063, cv: 0.0693, sa: 28.64, expl: 0.2568, under: 0.1527, time: 2.617, tokens: 1881.76},
+            {cat: 3, name: "Code-Llama-13B", exec: 0.5467, syntax: 0.989, thr: 0.843, fhr: 0.7946, fnr: 0.1883, all: 0.1992, geo: 0.8999, p1: 0.1981, p3: 0.2459, p5: 0.2691, cv: 0.1244, sa: 23.93, expl: 0.1992, under: 0.0979, time: 10.454, tokens: 2211.758},
+            {cat: 5, name: "XiYan-SQL-14B", exec: 0.4422, syntax: 0.7918, thr: 0.9655, fhr: 0.9194, fnr: 0.0942, all: 0.1265, geo: 0.8232, p1: 0.1295, p3: 0.1503, p5: 0.1619, cv: 0.091, sa: 14.84, expl: 0.1265, under: 0.0784, time: 2.816, tokens: 1883.71},
+            {cat: 4, name: "GeoCode-GPT-7B", exec: 0.4089, syntax: 0.9231, thr: 0.914, fhr: 0.8459, fnr: 0.1219, all: 0.1091, geo: 0.8222, p1: 0.1049, p3: 0.1647, p5: 0.187, cv: 0.2277, sa: 15.23, expl: 0.1091, under: 0.0459, time: 65.474, tokens: 1453.456},
+            {cat: 5, name: "CodeS-3B", exec: 0.3645, syntax: 0.7337, thr: 0.8712, fhr: 0.7549, fnr: 0.1343, all: 0.0913, geo: 0.8511, p1: 0.0891, p3: 0.1559, p5: 0.1898, cv: 0.2887, sa: 14.73, expl: 0.0913, under: 0.0181, time: 125.369, tokens: 1980.872},
+            {cat: 5, name: "CodeS-7B", exec: 0.1619, syntax: 0.297, thr: 0.8484, fhr: 0.7775, fnr: 0.0666, all: 0.0454, geo: 0.8571, p1: 0.0459, p3: 0.0923, p5: 0.1271, cv: 0.3761, sa: 9.24, expl: 0.0454, under: 0.0246, time: 58.786, tokens: 1894.338},
+            {cat: 5, name: "CodeS-15B", exec: 0.098, syntax: 0.1828, thr: 0.8673, fhr: 0.7774, fnr: 0.0305, all: 0.0204, geo: 0.912, p1: 0.0181, p3: 0.0524, p5: 0.0766, cv: 0.4895, sa: 5.14, expl: 0.0204, under: 0.0139, time: 180.446, tokens: 1969.028}
+        ];
+
+        function formatValue(value, isHighBetter = true) {
+            if (typeof value === 'number') {
+                const formatted = value < 1 ? value.toFixed(3) : value.toFixed(1);
+                const floatValue = parseFloat(value);
+
+                // Determine if this is a top value
+                const threshold = isHighBetter ? 0.8 : 0.2;
+                const isTop = isHighBetter ? floatValue >= threshold : floatValue <= threshold;
+
+                if (isTop && value < 100) {
+                    return `<span class="value-high">${formatted}</span>`;
+                }
+                return formatted;
+            }
+            return value;
+        }
+
+        function renderConceptualTable() {
+            const tbody = document.querySelector('#conceptual-table tbody');
+            const sortedData = [...conceptualData].sort((a, b) => b.avg - a.avg);
+
+            tbody.innerHTML = sortedData.map((row, index) => `
+                <tr>
+                    <td class="rank-cell">${index + 1}</td>
+                    <td class="model-name">${row.name}</td>
+                    <td><span class="category-badge cat-${row.cat}">${categoryMapping[row.cat]}</span></td>
+                    <td>${formatValue(row.func)}</td>
+                    <td>${formatValue(row.param)}</td>
+                    <td>${formatValue(row.ret)}</td>
+                    <td>${formatValue(row.gen)}</td>
+                    <td>${formatValue(row.avg)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSyntaxTable() {
+            const tbody = document.querySelector('#syntax-table tbody');
+            const sortedData = [...syntaxData].sort((a, b) => b.all - a.all);
+
+            tbody.innerHTML = sortedData.map((row, index) => `
+                <tr>
+                    <td class="rank-cell">${index + 1}</td>
+                    <td class="model-name">${row.name}</td>
+                    <td><span class="category-badge cat-${row.cat}">${categoryMapping[row.cat]}</span></td>
+                    <td>${formatValue(row.exec)}</td>
+                    <td>${formatValue(row.syntax)}</td>
+                    <td>${formatValue(row.fnr)}</td>
+                    <td>${formatValue(row.ama)}</td>
+                    <td>${formatValue(row.all)}</td>
+                    <td>${formatValue(row.geo)}</td>
+                    <td>${formatValue(row.other)}</td>
+                    <td>${formatValue(row.p1)}</td>
+                    <td>${formatValue(row.p3)}</td>
+                    <td>${formatValue(row.p5)}</td>
+                    <td>${formatValue(row.cv, false)}</td>
+                    <td>${formatValue(row.sa)}</td>
+                    <td>${formatValue(row.expl)}</td>
+                    <td>${formatValue(row.under)}</td>
+                    <td>${formatValue(row.time, false)}</td>
+                    <td>${formatValue(row.tokens, false)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTableTable() {
+            const tbody = document.querySelector('#table-table tbody');
+            const sortedData = [...tableData].sort((a, b) => b.all - a.all);
+
+            tbody.innerHTML = sortedData.map((row, index) => `
+                <tr>
+                    <td class="rank-cell">${index + 1}</td>
+                    <td class="model-name">${row.name}</td>
+                    <td><span class="category-badge cat-${row.cat}">${categoryMapping[row.cat]}</span></td>
+                    <td>${formatValue(row.exec)}</td>
+                    <td>${formatValue(row.syntax)}</td>
+                    <td>${formatValue(row.thr)}</td>
+                    <td>${formatValue(row.fhr)}</td>
+                    <td>${formatValue(row.fnr)}</td>
+                    <td>${formatValue(row.all)}</td>
+                    <td>${formatValue(row.geo)}</td>
+                    <td>${formatValue(row.p1)}</td>
+                    <td>${formatValue(row.p3)}</td>
+                    <td>${formatValue(row.p5)}</td>
+                    <td>${formatValue(row.cv, false)}</td>
+                    <td>${formatValue(row.sa)}</td>
+                    <td>${formatValue(row.expl)}</td>
+                    <td>${formatValue(row.under)}</td>
+                    <td>${formatValue(row.time, false)}</td>
+                    <td>${formatValue(row.tokens, false)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Make switchTab available globally
+        window.switchTab = function(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to selected tab
+            if (tabName === 'conceptual') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('conceptual').classList.add('active');
+            } else if (tabName === 'syntax') {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('syntax').classList.add('active');
+            } else if (tabName === 'table') {
+                document.querySelectorAll('.tab')[2].classList.add('active');
+                document.getElementById('table').classList.add('active');
+            }
+        }
+
+        // Initialize tables on load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderConceptualTable();
+            renderSyntaxTable();
+            renderTableTable();
+        });
+    </script>
+</body>
+</html>
